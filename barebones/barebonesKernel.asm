@@ -2,7 +2,7 @@ global _kernelMain
 extern _terminalInitialize
 extern _terminalWriteString
 
-section .rdata align=16
+section .rodata align=16
 
     align 16
     aHelloKernelWorld db "Hello, kernel World!", 10, 0
