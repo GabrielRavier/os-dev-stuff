@@ -1,6 +1,10 @@
 global _terminalInitialize
 global _terminalSetColor
 global _terminalPutEntryAt
+global _terminalPutChar
+global _terminalWrite
+global _terminalWriteString
+extern _strlen
 
 segment .bss align=16
 
@@ -83,3 +87,95 @@ _terminalPutEntryAt:
     mov [eax + ecx * 2], dx
     ret
     
+
+
+
+
+    align 16
+_terminalPutChar:
+    sub esp, 12
+    mov al, [esp + 16]
+
+    cmp al, 10  ; newline
+    je .endLine
+
+    movzx ecx, byte [terminalColor]
+    movsx eax, al
+
+    push dword [terminalRow]
+    push dword [terminalColumn]
+    push ecx
+    push eax
+    call _terminalPutEntryAt
+    add esp, 16
+
+    mov eax, [terminalColumn]
+    inc eax
+    cmp eax, 80
+    mov [terminalColumn], eax
+    jne .return
+
+.endLine:
+    mov eax, [terminalRow]
+    xor ecx, ecx
+    mov dword [terminalColumn], 0
+    inc eax
+    cmp eax, 25
+    cmovne ecx, eax
+    mov [terminalRow], ecx
+
+.return:
+    add esp, 12
+    ret
+
+
+
+
+
+    align 16
+_terminalWrite:
+    push edi
+    push esi
+    push eax
+    mov esi, [esp + 20]
+
+    test esi, esi
+    je .return
+
+    mov edi, [esp + 16]
+
+.loop:
+    movsx eax, byte [edi]
+    mov [esp], eax
+    call _terminalPutChar
+
+    inc edi
+    dec esi
+    jne .loop
+
+.return:
+    add esp, 4
+    pop esi
+    pop edi
+    ret
+
+
+
+
+
+    align 16
+_terminalWriteString:
+    push esi
+    sub esp, 8
+    mov esi, [esp + 16]
+
+    mov [esp], esi
+    call _strlen
+
+    mov [esp + 4], eax
+    mov [esp], esi
+    call _terminalWrite
+
+    add esp, 8
+    pop esi
+    ret
