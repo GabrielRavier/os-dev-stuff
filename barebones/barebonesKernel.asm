@@ -13,7 +13,7 @@ section .text align=16
 _kernelMain:
     sub esp, 12
     call _terminalInitialize
-    mov [esp], aHelloKernelWorld
+    mov dword [esp], aHelloKernelWorld
     call _terminalWriteString
     add esp, 12
     ret

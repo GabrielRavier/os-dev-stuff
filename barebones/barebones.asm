@@ -26,8 +26,8 @@ _start:
     ; We're in 32-bit protected mode on x86, but with nothing. Interrupts and paging are disabled.
     mov esp, stackTop
 
-    extern kernelMain
-    call kernelMain
+    extern _kernelMain
+    call _kernelMain
 
     ; End of kernel
     cli
