@@ -11,6 +11,8 @@ _PSE2CPUReset:
 	test al, PSE2StatusRegInputBufferStatus
 	jne .wait
 
+.loopInCaseItDidntWork:
 	; Reset CPU
 	mov al, 0xFE
 	out PSE2StatusCommandRegister, al
+	jmp .loopInCaseItDidntWork
