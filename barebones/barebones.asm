@@ -26,7 +26,7 @@ _start:
     ; We're in 32-bit protected mode on x86, but with nothing. Interrupts and paging are disabled.
     mov esp, stackTop
 
-    extern _kernelMain
+    extern _kernelMain  ; From barebonesKernel.asm
     call _kernelMain
 
     ; End of kernel

@@ -1,5 +1,5 @@
 global _kernelMain
-extern _terminalInitialize
+extern _terminalInitialize  ; from terminal.asm
 extern _terminalWriteString
 
 section .rodata align=16

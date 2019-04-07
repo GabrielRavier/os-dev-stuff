@@ -4,7 +4,7 @@ global _terminalPutEntryAt
 global _terminalPutChar
 global _terminalWrite
 global _terminalWriteString
-extern _strlen
+extern _strlen  ; from string.asm
 
 segment .bss align=16
 
