@@ -1,4 +1,5 @@
-global _io_base ; IO base address of the first BAR read from configuration space (uint16_t), not initialized here
+global _ioBase ; IO base address of the first BAR read from configuration space (uint16_t), not initialized here
+
 global _PCNET_initCard
 global _PCNET_enableASEL
 global _PCNET_swStyleTo2
@@ -17,13 +18,13 @@ global _PCNET_writeRAP32
 
 section .bss align=16
 
-	_io_base resw 1
+	_ioBase resw 1
 
 section .text align=16
 
 	align 16
 _PCNET_initCard:
-	movzx edx, word [_io_base]
+	movzx edx, word [_ioBase]
 	add edx, 0x18
 	in eax, dx
 
@@ -76,7 +77,7 @@ _PCNET_initCard:
 
 	align 16
 _PCNET_enableASEL:
-	movzx edx, word [_io_base]
+	movzx edx, word [_ioBase]
 	mov eax, 2
 	add edx, 0x14
 	out dx, eax
@@ -101,7 +102,7 @@ _PCNET_enableASEL:
 
 	align 16
 _PCNET_swStyleTo2:
-	movzx edx, word [_io_base]
+	movzx edx, word [_ioBase]
 	mov eax, 58
 	add edx, 0x14
 	out dx, eax
@@ -127,7 +128,7 @@ _PCNET_swStyleTo2:
 
 	align 16
 _PCNET_to32Bit:
-	movzx edx, word [_io_base]
+	movzx edx, word [_ioBase]
 	xor eax, eax
 	add edx, 0x10
 	out dx, eax
@@ -139,7 +140,7 @@ _PCNET_to32Bit:
 
 	align 16
 _PCNET_resetCard:
-	mov cx, [_io_base]
+	mov cx, [_ioBase]
 	lea edx, [ecx + 0x18]
 	in eax, dx
 
@@ -187,7 +188,7 @@ _PCNET_resetCard:
 %macro makeReadOrWrite 5
 	align 16
 %1:
-	mov cx, [_io_base]
+	mov cx, [_ioBase]
 %if %5 == 1 && %3 == 1
 	movzx eax, word [esp + 4]
 %else
@@ -220,26 +221,30 @@ _PCNET_resetCard:
 	makeReadOrWrite %1, %2, %3, %4, 1
 %endmacro
 
-; %1 : makeRead or makeWrite (or other)
-; %2 : Name of function
-; %3 : false : 32-bit, true : 16-bit
-%macro makeBCR 3
-	%1 %2, 0x14, %3, 0x16
+	makeWrite _PCNET_writeBCR16, 0x12, 1, 0x16
+	makeWrite _PCNET_writeBCR32, 0x14, 0, 0x1C
+	makeRead _PCNET_readBCR16, 0x14, 1, 0x16
+	makeRead _PCNET_readBCR32, 0x14, 0, 0x1C
+	
+	makeWrite _PCNET_writeCSR16, 0x12, 1, 0x10
+	makeWrite _PCNET_writeCSR32, 0x14, 0, 0x10
+	makeRead _PCNET_readCSR16, 0x14, 1, 0x10
+	makeRead _PCNET_readCSR32, 0x14, 0, 0x10
+
+%macro makeRAP 3
+	align 16
+%1:
+	mov ax, [_ioBase]
+	lea edx, [eax + %2]
+
+	mov eax, [esp + 4]
+%if %3 == 0
+	out dx, ax
+%else
+	out dx, eax
+%endif
+	ret
 %endmacro
 
-; %1 : Name of function
-; %2 : false : 32-bit, true : 16-bit
-%macro makeBCRWrite 2
-	makeBCR makeWrite, %1, %2
-%endmacro
-
-; %1 : Name of function
-; %2 : false : 32-bit, true : 16-bit
-%macro makeBCRRead 2
-	makeBCR makeRead, %1, %2
-%endmacro
-
-	makeBCRWrite _PCNET_writeBCR16, 1
-	makeBCRWrite _PCNET_writeBCR32, 0
-	makeBCRRead _PCNET_readBCR16, 1
-	makeBCRRead _PCNET_readBCR32, 1
+	makeRAP _PCNET_writeRAP16, 0x12, 0
+	makeRAP _PCNET_writeRAP32, 0x14, 1
