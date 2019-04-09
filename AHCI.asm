@@ -105,7 +105,7 @@ _AHCI_probePort:
 	push aGotSATAPI
 	jmp .continue
 
-.noDriveDetected
+.noDriveDetected:
 	sub esp, 8
 	push edi
 	push aNoDrive
