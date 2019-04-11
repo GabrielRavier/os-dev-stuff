@@ -1,3 +1,4 @@
+%include "macros.inc"
 %define FIS_TYPE_REG_H2D 0x27, ; Register FIS - host to device
 %define FIS_TYPE_REG_D2H 0x34, ; Register FIS - device to host
 %define FIS_TYPE_DMA_ACT 0x39, ; DMA activate FIS - device to host
@@ -69,10 +70,7 @@ _FIS_REG_H2D_init:
 
 	align 16
 _AHCI_probePort:
-	push ebp
-	push ebx
-	push edi
-	push esi
+	multipush ebp, ebx, edi, esi
 	sub esp, 12
 	mov esi, [esp + 32]
 	xor edi, edi
@@ -101,29 +99,24 @@ _AHCI_probePort:
 	cmp eax, SATA_SIG_ATAPI
 	jne .gotSATA
 
-	push edi
-	push aGotSATAPI
+	multipush edi, aGotSATAPI
 	jmp .continue
 
 .noDriveDetected:
 	sub esp, 8
-	push edi
-	push aNoDrive
+	multipush edi, aNoDrive
 	jmp .continue
 
 .gotSEMB:
-	push edi
-	push aGotSEMB
+	multipush edi, aGotSEMB
 	jmp .continue
 
 .gotPM:
-	push edi
-	push aGotPM
+	multipush edi, aGotPM
 	jmp .continue
 
 .gotSATA:
-	push edi
-	push aGotSATA
+	multipush edi, aGotSATA
 
 .continue:
 	call _trace_ahci
@@ -137,10 +130,7 @@ _AHCI_probePort:
 	jne .loop
 
 	add esp, 12
-	pop esi
-	pop edi
-	pop ebx
-	pop ebp
+	multipop ebp, ebx, edi, esi
 	ret
 
 
@@ -185,10 +175,7 @@ _AHCI_stopCmd:
 
 	align 16
 _AHCI_portRebase:
-	push ebp
-	push edi
-	push esi
-	push ebx
+	multipush ebp, edi, esi, ebx
 	sub esp, 24
 
 	mov ebp, [esp + 44]
@@ -256,8 +243,5 @@ _AHCI_portRebase:
 
 	mov [esp + 32], ebp
 	add esp, 12
-	pop ebx
-	pop esi
-	pop edi
-	pop ebp
+	multipop ebp, edi, esi, ebx
 	jmp _AHCI_startCmd

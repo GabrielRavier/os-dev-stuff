@@ -1,6 +1,16 @@
-global _ioBase ; IO base address of the first BAR read from configuration space (uint16_t), not initialized here
+%include "macros.inc"
+extern _memcpy	; Should work like libc memcpy
+global _PCNET_ioBase ; IO base address of the first BAR read from configuration space (uint16_t), not initialized here
+global _PCNET_pRxBuffer	; (int)
+global _PCNET_pTxBuffer	; Pointers to transmit/receive buffers (int)
+global _PCNET_rxBufferCount	; Total number of receive buffers (int)
+global _PCNET_txBufferCount	; Total number of transmit buffers (int)
+global _PCNET_rDes	; Pointer to ring buffer of receive DEs (uint8_t *)
+global _PCNET_tDes	; Pointer to ring buffer of transmit DEs (uint8_t *)
+global _PCNET_rxBuffers	; Physical address of actual receive buffers (< 4 GiB) (uint32_t)
+global _PCNET_txBuffers	; Physical address of actual transmit buffers (< 4 GiB) (uint32_t)
 
-global _PCNET_initCard
+global _PCNET_init
 global _PCNET_enableASEL
 global _PCNET_swStyleTo2
 global _PCNET_to32Bit
@@ -15,16 +25,44 @@ global _PCNET_readCSR16
 global _PCNET_readCSR32
 global _PCNET_writeRAP16
 global _PCNET_writeRAP32
+global _PCNET_driverOwns
+global _PCNET_nextTxIdx
+global _PCNET_nextRxIdx
+global _PCNET_initDE
+global _PCNET_sendPacket
 
 section .bss align=16
 
-	_ioBase resw 1
+	_PCNET_ioBase resw 1
+	resw 1	; align
+
+	_PCNET_rDes resd 1
+
+	_PCNET_tDes resd 1
+
+	_PCNET_rxBuffers resd 1
+
+	_PCNET_txBuffers resd 1
+
+section .data align=16
+
+	align 16
+	_PCNET_pRxBuffer dd 0
+
+	align 16
+	_PCNET_pTxBuffer dd 0
+
+	align 16
+	_PCNET_rxBufferCount dd 32
+
+	align 16
+	_PCNET_txBufferCount dd 8
 
 section .text align=16
 
 	align 16
-_PCNET_initCard:
-	movzx edx, word [_ioBase]
+_PCNET_init:
+	movzx edx, word [_PCNET_ioBase]
 	add edx, 0x18
 	in eax, dx
 
@@ -77,7 +115,7 @@ _PCNET_initCard:
 
 	align 16
 _PCNET_enableASEL:
-	movzx edx, word [_ioBase]
+	movzx edx, word [_PCNET_ioBase]
 	mov eax, 2
 	add edx, 0x14
 	out dx, eax
@@ -102,7 +140,7 @@ _PCNET_enableASEL:
 
 	align 16
 _PCNET_swStyleTo2:
-	movzx edx, word [_ioBase]
+	movzx edx, word [_PCNET_ioBase]
 	mov eax, 58
 	add edx, 0x14
 	out dx, eax
@@ -128,7 +166,7 @@ _PCNET_swStyleTo2:
 
 	align 16
 _PCNET_to32Bit:
-	movzx edx, word [_ioBase]
+	movzx edx, word [_PCNET_ioBase]
 	xor eax, eax
 	add edx, 0x10
 	out dx, eax
@@ -140,7 +178,7 @@ _PCNET_to32Bit:
 
 	align 16
 _PCNET_resetCard:
-	mov cx, [_ioBase]
+	mov cx, [_PCNET_ioBase]
 	lea edx, [ecx + 0x18]
 	in eax, dx
 
@@ -188,7 +226,7 @@ _PCNET_resetCard:
 %macro makeReadOrWrite 5
 	align 16
 %1:
-	mov cx, [_ioBase]
+	mov cx, [_PCNET_ioBase]
 %if %5 == 1 && %3 == 1
 	movzx eax, word [esp + 4]
 %else
@@ -234,7 +272,7 @@ _PCNET_resetCard:
 %macro makeRAP 3
 	align 16
 %1:
-	mov ax, [_ioBase]
+	mov ax, [_PCNET_ioBase]
 	lea edx, [eax + %2]
 
 	mov eax, [esp + 4]
@@ -248,3 +286,140 @@ _PCNET_resetCard:
 
 	makeRAP _PCNET_writeRAP16, 0x12, 0
 	makeRAP _PCNET_writeRAP32, 0x14, 1
+
+
+
+
+
+	align 16
+_PCNET_driverOwns:	; does the driver own the particular buffer?
+	mov eax, [esp + 8]
+	sal eax, 4
+	add eax, [esp + 4]
+	movsx eax, byte [eax + 7]
+	not eax
+	shr eax, 31
+	ret
+
+
+
+
+%macro makeNextThingo 2
+	align 16
+%1:
+	mov ecx, [esp + 4]
+	xor eax, eax
+	inc ecx
+	cmp ecx, [%2]
+	cmovne eax, ecx
+	ret
+%endmacro
+
+	makeNextThingo _PCNET_nextTxIdx, _PCNET_txBufferCount
+	makeNextThingo _PCNET_nextRxIdx, _PCNET_rxBufferCount
+
+
+
+
+
+	align 16
+_PCNET_initDE:	; initialize a DE
+	multipush esi, edi
+
+	xor ecx, ecx
+
+	mov esi, [esp + 16]
+	mov eax, esi
+	shl eax, 4
+	mov edx, [esp + 12]
+	mov [eax + edx], ecx
+	mov [eax + edx + 4], ecx
+	mov [eax + edx + 8], ecx
+	mov [eax + edx + 12], ecx
+
+	imul esi, 0x60C
+
+	mov edi, [esp + 20]
+	test edi, edi
+
+	mov ecx, [_PCNET_rxBuffers]
+	cmovne ecx, [_PCNET_txBuffers]
+	add esi, ecx
+
+	mov ecx, 0xF9F4
+	mov [eax + edx], esi
+	mov [eax + edx + 4], cx
+
+	test edi, edi
+	jne .return
+
+	mov byte [eax + edx + 7], 0x80
+
+.return:
+	multipop esi, edi
+	ret
+	
+
+
+
+
+	align 16
+_PCNET_sendPacket:
+	mov eax, [_PCNET_pTxBuffer]
+	mov ecx, [_PCNET_tDes]
+
+	mov edx, eax
+	shl edx, 4
+
+	cmp byte [ecx + edx + 7], 0
+	js .ret0
+
+	push esi
+	sub esp, 8
+
+	imul eax, 0x60C
+	mov esi, [esp + 20]
+	add eax, [_PCNET_txBuffers]
+	sub esp, 4
+	multipush esi, dword [esp + 24], eax
+	call _memcpy
+	add esp, 16
+
+	mov ecx, [_PCNET_pTxBuffer]
+	mov eax, [_PCNET_tDes]
+
+	neg esi
+	or esi, 0xF000
+
+	shl ecx, 4
+	or byte [eax + ecx + 7], 2
+
+	mov ecx, [_PCNET_pTxBuffer]
+	mov eax, [_PCNET_tDes]
+
+	shl ecx, 4
+	or byte [eax + ecx + 7], 1
+
+	mov ecx, [_PCNET_pTxBuffer]
+	mov eax, [_PCNET_tDes]
+	shl ecx, 4
+	mov [eax + ecx + 7], si
+
+	or byte [eax + ecx + 7], 0x80
+	xor ecx, ecx
+
+	mov eax, [_PCNET_pTxBuffer]
+	inc eax
+	cmp eax, [_PCNET_txBufferCount]
+	cmovne ecx, eax
+	
+	mov eax, 1
+	mov [_PCNET_pTxBuffer], ecx
+	add esp, 8
+	pop esi
+	ret
+
+	align 16
+.ret0:
+	xor eax, eax
+	ret
