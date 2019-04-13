@@ -6,6 +6,7 @@
 	public _kSerDbgPutc
 	public _arm4CpsrGet
 	public _arm4CpsrSet
+	public _arm4XrqEnableFiq
 
 section '.text' executable align 16
 
@@ -50,3 +51,24 @@ _arm4CpsrGet:
 _arm4CpsrSet:
 	msr cpsr, r0
 	bx lr
+
+
+
+
+
+_arm4XrqEnableFiq:
+	mrs r3, cpsr
+	bic r3, #0x40
+	msr cpsr, r3
+	bx lr
+
+
+
+
+
+_arm4XrqEnableIrq:
+	mrs r3, cpsr
+	bic r3, #0x80
+	msr cpsr, r3
+	bx lr
+	
