@@ -5,6 +5,7 @@
 	public _entry
 	public _kSerDbgPutc
 	public _arm4CpsrGet
+	public _arm4CpsrSet
 
 section '.text' executable align 16
 
@@ -40,4 +41,12 @@ _kSerDbgPutc:
 
 _arm4CpsrGet:
 	mrs r0, cpsr
+	bx lr
+
+
+
+
+
+_arm4CpsrSet:
+	msr cpsr, r0
 	bx lr
