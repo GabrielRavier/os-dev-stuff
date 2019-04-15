@@ -20,6 +20,8 @@
 	public _kExpHandlerAbrtDEntry
 	public _kExpHandlerSwiEntry
 	public _arm4XrqInstall
+	public _thread2
+	public _thread1
 	public _start
 
 section '.rodata' align 16
@@ -649,16 +651,22 @@ _kExpHandler:
 
 
 _kExpHandlerIrqEntry:
-	mov sp, #0x4000
+	mov sp, #0x3000
 	sub lr, #4
 	
 	push {lr}
 	push {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12}
 
+	mrs r0, spsr
+	push {r0}
+
 	mov r0, lr
 	mov r1, #6
 
 	bl _kExpHandler
+
+	pop {r0}
+	msr spsr, r0
 
 	pop {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12}
 	ldm sp!, {pc}^
@@ -668,16 +676,22 @@ _kExpHandlerIrqEntry:
 
 
 _kExpHandlerFiqEntry:
-	mov sp, #0x4000
+	mov sp, #0x3000
 	sub lr, #4
 	
 	push {lr}
 	push {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12}
 
+	mrs r0, spsr
+	push {r0}
+
 	mov r0, lr
 	mov r1, #7
 
 	bl _kExpHandler
+
+	pop {r0}
+	msr spsr, r0
 
 	pop {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12}
 	ldm sp!, {pc}^
@@ -687,16 +701,22 @@ _kExpHandlerFiqEntry:
 
 
 _kExpHandlerResetEntry:
-	mov sp, #0x4000
+	mov sp, #0x3000
 	sub lr, #4
 	
 	push {lr}
 	push {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12}
 
+	mrs r0, spsr
+	push {r0}
+
 	mov r0, lr
 	mov r1, #0
 
 	bl _kExpHandler
+
+	pop {r0}
+	msr spsr, r0
 
 	pop {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12}
 	ldm sp!, {pc}^
@@ -706,16 +726,22 @@ _kExpHandlerResetEntry:
 
 
 _kExpHandlerUndefEntry:
-	mov sp, #0x4000
+	mov sp, #0x3000
 	sub lr, #4
 	
 	push {lr}
 	push {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12}
 
+	mrs r0, spsr
+	push {r0}
+
 	mov r0, lr
 	mov r1, #1
 
 	bl _kExpHandler
+
+	pop {r0}
+	msr spsr, r0
 
 	pop {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12}
 	ldm sp!, {pc}^
@@ -725,16 +751,22 @@ _kExpHandlerUndefEntry:
 
 
 _kExpHandlerAbrtPEntry:
-	mov sp, #0x4000
+	mov sp, #0x3000
 	sub lr, #4
 	
 	push {lr}
 	push {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12}
 
+	mrs r0, spsr
+	push {r0}
+
 	mov r0, lr
 	mov r1, #3
 
 	bl _kExpHandler
+
+	pop {r0}
+	msr spsr, r0
 
 	pop {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12}
 	ldm sp!, {pc}^
@@ -744,16 +776,22 @@ _kExpHandlerAbrtPEntry:
 
 
 _kExpHandlerAbrtDEntry:
-	mov sp, #0x4000
+	mov sp, #0x3000
 	sub lr, #4
 	
 	push {lr}
 	push {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12}
 
+	mrs r0, spsr
+	push {r0}
+
 	mov r0, lr
 	mov r1, #4
 
 	bl _kExpHandler
+
+	pop {r0}
+	msr spsr, r0
 
 	pop {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12}
 	ldm sp!, {pc}^
@@ -763,8 +801,8 @@ _kExpHandlerAbrtDEntry:
 
 
 _kExpHandlerSwiEntry:
-	mov sp, #0x4000
-	
+	mov sp, #0x3000
+
 	push {lr}
 	push {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12}
 
@@ -793,34 +831,128 @@ _arm4XrqInstall:
 
 
 
+_thread2:
+	mov r3, #0x100000
+	sub r3, #1
+
+.waitLoop:
+	subs r3, #1
+	bne .waitLoop
+
+	push {r4, lr}
+
+.print:
+	mov r0, #66
+	bl _kSerDbgPutc
+
+	mov r3, #0x100000
+	sub r3, #1
+
+.waitLoop2:
+	subs r3, #1
+	bne .waitLoop2
+	b .print
+
+
+
+
+
+_thread1:
+	mov r3, #0x100000
+	sub r3, #1
+
+.waitLoop:
+	subs r3, #1
+	bne .waitLoop
+
+	push {r4, lr}
+
+.print:
+	mov r0, #65
+	bl _kSerDbgPutc
+
+	swi #4
+
+	mov r3, #0x100000
+	sub r3, #1
+
+.waitLoop2:
+	subs r3, #1
+	bne .waitLoop2
+	b .print
+
+
+
+
+
 _start:
 	push {r4, lr}
 
-	ldr r1, [.dat]
+	mov r0, #89
+	bl _kSerDbgPutc
+
+	mov r3, #0x1000
+	mov ip, #0x5000
 	mov r0, #0
+	mov r4, #1
+	mov r1, #0x7000
+	ldr r2, [.pThreads]
+
+	str ip, [r3, #56]
+	str r2, [r3, #68]
+
+	ldr ip, [.pThreads + 4]
+	ldr r2, [.n0x60000010]
+
+	str ip, [r3, #140]
+	str r1, [r3, #128]
+	strb r4, [r3, #0x481]
+	strb r4, [r3]
+	strb r4, [r3, #72]
+	strb r0, [r3, #144]
+	strb r0, [r3, #216]
+	strb r0, [r3, #288]
+	strb r0, [r3, #360]
+	strb r0, [r3, #432]
+	strb r0, [r3, #504]
+	strb r0, [r3, #576]
+	strb r0, [r3, #648]
+	strb r0, [r3, #720]
+	strb r0, [r3, #792]
+	strb r0, [r3, #864]
+	strb r0, [r3, #936]
+	strb r0, [r3, #1008]
+	strb r0, [r3, #1080]
+
+	strb r0, [r3, #1152]
+
+	str r2, [r3, #64]
+	str r2, [r3, #136]
+
+	ldr r1, [.pHandlers]
 	bl _arm4XrqInstall
 
-	ldr r1, [.dat + 4]
-	mov r0, #1
+	ldr r1, [.pHandlers + 4]
+	mov r0, r4
 	bl _arm4XrqInstall
 
-	ldr r1, [.dat + 8]
+	ldr r1, [.pHandlers + 8]
 	mov r0, #2
 	bl _arm4XrqInstall
 
-	ldr r1, [.dat + 12]
+	ldr r1, [.pHandlers + 12]
 	mov r0, #3
 	bl _arm4XrqInstall
 
-	ldr r1, [.dat + 16]
+	ldr r1, [.pHandlers + 16]
 	mov r0, #4
 	bl _arm4XrqInstall
 
-	ldr r1, [.dat + 20]
+	ldr r1, [.pHandlers + 20]
 	mov r0, #6
 	bl _arm4XrqInstall
 
-	ldr r1, [.dat + 24]
+	ldr r1, [.pHandlers + 24]
 	mov r0, #7
 	bl _arm4XrqInstall
 
@@ -855,7 +987,14 @@ _start:
 .infLoop:
 	b .infLoop
 
-.dat:
+.pThreads:
+	dw _thread1
+	dw _thread2
+
+.n0x60000010:
+	dw 0x60000010
+
+.pHandlers:
 	dw _kExpHandlerResetEntry
 	dw _kExpHandlerUndefEntry
 	dw _kExpHandlerSwiEntry
