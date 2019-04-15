@@ -6,4 +6,5 @@ nasm -f elf32 APIC.asm &
 fasmarm ARMIntegratorCPBareBonesPutcPuts.asm &
 fasmarm ARMIntegratorCPIRQTimerAndPIC.asm &
 fasmarm ARMIntegratorCPIRQTimerAndPICAndTaskSwitch.asm &
-fasmarm ARMIntegratorCPIRQTimerPICTasksMMAndMods.asm
+fasmarm ARMIntegratorCPIRQTimerPICTasksMMAndMods.asm &
+fasmarm ARMIntegratorCPITPTMMEPhase2.asm
