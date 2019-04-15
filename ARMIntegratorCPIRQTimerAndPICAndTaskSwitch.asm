@@ -3,14 +3,9 @@
 
 	format ELF
 	public _entry
-	public _kSerDbgPutc
 	public _kSerDbgPuts
 	public _itoh
 	public _ksprintf
-	public _arm4CpsrGet
-	public _arm4SpsrGet
-	public _arm4CpsrSet
-	public _arm4XrqEnableFiq
 	public _kExpHandler
 	public _kExpHandlerIrqEntry
 	public _kExpHandlerFiqEntry
@@ -19,10 +14,11 @@
 	public _kExpHandlerAbrtPEntry
 	public _kExpHandlerAbrtDEntry
 	public _kExpHandlerSwiEntry
-	public _arm4XrqInstall
 	public _thread2
 	public _thread1
 	public _start
+	extrn _kSerDbgPutc
+	extrn _arm4XrqInstall
 
 section '.rodata' align 16
 
@@ -46,25 +42,6 @@ _entry:
 	mov r2, #65
 	str r2, [r1]
 	bl _start
-
-
-
-
-
-_kSerDbgPutc:
-	mov r2, #0x16000000
-
-.loop:
-	ldr r3, [r2, #24]
-	tst r3, #32
-	bne .loop
-
-	cmp r0, #10
-	str r0, [r2]
-	bxne lr
-
-	mov r0, #13
-	b .loop
 
 
 
@@ -311,50 +288,6 @@ _ksprintf:
 .retR0:
 	mov fp, r0
 	b .return
-
-
-
-
-
-_arm4CpsrGet:
-	mrs r0, cpsr
-	bx lr
-
-
-
-
-
-_arm4SpsrGet:
-	mrs r0, spsr
-	bx lr
-
-
-
-
-
-_arm4CpsrSet:
-	msr cpsr, r0
-	bx lr
-
-
-
-
-
-_arm4XrqEnableFiq:
-	mrs r3, cpsr
-	bic r3, #0x40
-	msr cpsr, r3
-	bx lr
-
-
-
-
-
-_arm4XrqEnableIrq:
-	mrs r3, cpsr
-	bic r3, #0x80
-	msr cpsr, r3
-	bx lr
 
 
 
@@ -813,19 +746,6 @@ _kExpHandlerSwiEntry:
 
 	pop {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12}
 	ldm sp!, {pc}^
-
-
-
-
-
-_arm4XrqInstall:
-	add r0, #2
-	lsl r0, #2
-	sub r1, r0
-	lsr r1, #2
-	orr r1, 0xEA000000
-	str r1, [r0, #-8]
-	bx lr
 
 
 
