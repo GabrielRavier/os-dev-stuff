@@ -7,6 +7,7 @@
 	public _arm4CpsrGet
 	public _arm4CpsrSet
 	public _arm4XrqEnableFiq
+	public _arm4XrqEnableIrq
 	public _kExpHandler
 	public _kExpHandlerIrqEntry
 	public _kExpHandlerFiqEntry
@@ -50,8 +51,18 @@ _kSerDbgPutc:
 
 
 
+macro cpsrGet where
+{
+	mrs where, cpsr
+}
+
+macro cpsrSet where
+{
+	msr cpsr, where
+}
+
 _arm4CpsrGet:
-	mrs r0, cpsr
+	cpsrGet r0
 	bx lr
 
 
@@ -59,7 +70,7 @@ _arm4CpsrGet:
 
 
 _arm4CpsrSet:
-	msr cpsr, r0
+	cpsrSet r0
 	bx lr
 
 
@@ -67,9 +78,9 @@ _arm4CpsrSet:
 
 
 _arm4XrqEnableFiq:
-	mrs r3, cpsr
+	cpsrGet r3
 	bic r3, #0x40
-	msr cpsr, r3
+	cpsrSet r3
 	bx lr
 
 
@@ -77,9 +88,9 @@ _arm4XrqEnableFiq:
 
 
 _arm4XrqEnableIrq:
-	mrs r3, cpsr
+	cpsrGet r3
 	bic r3, #0x80
-	msr cpsr, r3
+	cpsrSet r3
 	bx lr
 
 
@@ -122,11 +133,11 @@ _kExpHandler:
 
 
 
-
+	
 _kExpHandlerIrqEntry:
 	mov sp, #0x4000
 	sub lr, #4
-	
+
 	push {lr}
 	push {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12}
 
@@ -137,6 +148,7 @@ _kExpHandlerIrqEntry:
 
 	pop {r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12}
 	ldm sp!, {pc}^
+
 
 
 

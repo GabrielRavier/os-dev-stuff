@@ -4,4 +4,5 @@ nasm -f elf32 AHCI.asm &
 nasm -f elf32 AMDPCNET.asm &
 nasm -f elf32 APIC.asm &
 fasmarm ARMIntegratorCPBareBonesPutcPuts.asm &
-fasmarm ARMIntegratorCPIRQTimerAndPIC.asm
+fasmarm ARMIntegratorCPIRQTimerAndPIC.asm &
+fasmarm ARMIntegratorCPIRQTimerAndPICAndTaskSwitch.asm
