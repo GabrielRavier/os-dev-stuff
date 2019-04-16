@@ -7,4 +7,5 @@ fasmarm ARMIntegratorCPBareBonesPutcPuts.asm &
 fasmarm ARMIntegratorCPIRQTimerAndPIC.asm &
 fasmarm ARMIntegratorCPIRQTimerAndPICAndTaskSwitch.asm &
 fasmarm ARMIntegratorCPIRQTimerPICTasksMMAndMods.asm &
-fasmarm ARMIntegratorCPITPTMMEPhase2.asm
+fasmarm ARMIntegratorCPITPTMMEPhase2.asm &
+fasmarm ARMString.asm
