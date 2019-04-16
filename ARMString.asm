@@ -247,3 +247,4 @@ _memsetARMv6:
 	strb r1, [r0, ip]
 	strbhi r1, [r0, r3]
 	bx lr
+	
