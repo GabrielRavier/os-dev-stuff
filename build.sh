@@ -8,4 +8,5 @@ fasmarm ARMIntegratorCPIRQTimerAndPIC.asm &
 fasmarm ARMIntegratorCPIRQTimerAndPICAndTaskSwitch.asm &
 fasmarm ARMIntegratorCPIRQTimerPICTasksMMAndMods.asm &
 fasmarm ARMIntegratorCPITPTMMEPhase2.asm &
-fasmarm ARMString.asm
+fasmarm ARMString.asm &
+nasm -f elf32 ATAPI.asm
