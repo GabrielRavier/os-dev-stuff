@@ -1,3 +1,5 @@
+MIPSEL_AS=mipsel-unknown-linux-gnu-as
+
 nasm -f elf32 CPUReset.asm &
 nasm -f elf32 8259PIC.asm &
 nasm -f elf32 AHCI.asm &
@@ -9,4 +11,5 @@ fasmarm ARMIntegratorCPIRQTimerAndPICAndTaskSwitch.asm &
 fasmarm ARMIntegratorCPIRQTimerPICTasksMMAndMods.asm &
 fasmarm ARMIntegratorCPITPTMMEPhase2.asm &
 fasmarm ARMString.asm &
-nasm -f elf32 ATAPI.asm
+nasm -f elf32 ATAPI.asm &
+$MIPSEL_AS CREBareBonesPrint.asm -o CREBareBonesPrint.o
