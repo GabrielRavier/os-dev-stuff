@@ -15,4 +15,5 @@ nasm -f elf32 ATAPI.asm &
 $MIPSEL_AS CREBareBonesPrint.asm -o CREBareBonesPrint.o 
 nasm -f elf32 CMOS.asm &
 nasm -f elf32 CPUID.asm &
-nasm -f elf32 CRC32.asm
+nasm -f elf32 CRC32.asm &
+nasm -f elf32 DetectColorMonochromeMonitor.asm
