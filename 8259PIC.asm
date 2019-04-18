@@ -1,3 +1,5 @@
+%include "macros.inc"
+
 global _PIC_send
 global _PIC_remap
 global _PIC_disable
@@ -11,13 +13,13 @@ global _PIC_getISR
 	out 0x80, al
 %endmacro
 
-%macro outConst 2
+%macro outNonAl 2
 	mov al, %2
 	out %1, al
 %endmacro
 
-%macro outConstAndWait 2
-	outConst %1, %2
+%macro outNonAlAndWait 2
+	outNonAl %1, %2
 	ioWait
 %endmacro
 
@@ -61,16 +63,15 @@ _PIC_send:
 
 	align 16
 _PIC_remap:
-	mov dl, [esp + 4]
-	mov cl, [esp + 8]
+	multimov dl, [esp + 4], cl, [esp + 8]
 
 	in al, PIC1_DATA
 	mov ch, al
 	in al, PIC2_DATA
 	mov dh, al
 
-	outConstAndWait PIC1_COMMAND, ICW1_INIT | ICW1_ICW4
-	outConstAndWait PIC2_COMMAND, ICW1_INIT | ICW1_ICW4
+	outNonAlAndWait PIC1_COMMAND, ICW1_INIT | ICW1_ICW4
+	outNonAlAndWait PIC2_COMMAND, ICW1_INIT | ICW1_ICW4
 
 	mov eax, edx
 	out PIC1_DATA, al
@@ -80,18 +81,15 @@ _PIC_remap:
 	out PIC2_DATA, al
 	ioWait
 
-	outConstAndWait PIC1_DATA, 4
-	outConstAndWait PIC2_DATA, 2
+	outNonAlAndWait PIC1_DATA, 4
+	outNonAlAndWait PIC2_DATA, 2
 
-	outConstAndWait PIC1_DATA, ICW4_8086
+	outNonAlAndWait PIC1_DATA, ICW4_8086
 	out PIC2_DATA, al
 	ioWait
 
-	mov al, ch
-	out PIC1_DATA, al
-	
-	mov al, dh
-	out PIC2_DATA, al
+	outNonAl PIC1_DATA, ch
+	outNonAl PIC2_DATA, dh
 
 	ret
 
@@ -101,8 +99,7 @@ _PIC_remap:
 
 	align 16
 _PIC_disable:
-	mov al, 0xFF
-	out PIC2_DATA, al
+	outNonAl PIC2_DATA, 0xFF
 	out PIC1_DATA, al
 	ret
 

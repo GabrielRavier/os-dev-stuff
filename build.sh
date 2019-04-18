@@ -12,4 +12,5 @@ fasmarm ARMIntegratorCPIRQTimerPICTasksMMAndMods.asm &
 fasmarm ARMIntegratorCPITPTMMEPhase2.asm &
 fasmarm ARMString.asm &
 nasm -f elf32 ATAPI.asm &
-$MIPSEL_AS CREBareBonesPrint.asm -o CREBareBonesPrint.o
+$MIPSEL_AS CREBareBonesPrint.asm -o CREBareBonesPrint.o 
+nasm -f elf32 CMOS.asm

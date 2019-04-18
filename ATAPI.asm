@@ -17,13 +17,9 @@ section .text align=16
 %endmacro
 
 _ATAPI_driveReadSector:
-	multipush ebp, edi, esi, ebx
-	sub esp, 28
-	mov ebp, [esp + 48]
+	prolog ebp, edi, esi, ebx, 28
 
-	mov dword [esp + 4], 168
-	mov dword [esp + 8], 0
-	mov dword [esp + 12], 0
+	multimov ebp, [esp + 48], dword [esp + 4], 168, dword [esp + 8], 0, dword [esp + 12], 0
 
 	call _ataGrab
 
@@ -82,12 +78,10 @@ _ATAPI_driveReadSector:
 	test al, 1
 	jne .error
 
-	mov eax, [esp + 56]
-	mov byte [esp + 13], 1
+	multimov eax, [esp + 56], byte [esp + 13], 1
 
 	lea esi, [esp + 4]
-	mov edx, ebp
-	mov ecx, 6
+	multimov edx, ebp, ecx, 6
 
 	bswap eax
 	mov [esp + 6], eax
@@ -109,9 +103,7 @@ _ATAPI_driveReadSector:
 	cmp esi, 0x800
 	jne .error
 
-	mov edi, [esp + 60]
-	mov ecx, 0x400
-	mov edx, ebp
+	multimov edi, [esp + 60], ecx, 0x400, edx, ebp
 	rep insw
 
 	call _schedule
@@ -134,9 +126,8 @@ _ATAPI_driveReadSector:
 .return:
 	call _ataRelease
 
-	add esp, 28
 	mov eax, esi
-	multipop ebp, edi, esi, ebx
+	epilog ebp, edi, esi, ebx, 28
 	ret
 
 	align 16

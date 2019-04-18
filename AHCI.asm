@@ -53,14 +53,7 @@ section .text align=16
 
 	align 16
 _FIS_REG_H2D_init:
-	mov eax, [esp + 4]
-	mov dword [eax + 3], 0
-	mov dword [eax + 7], 0
-	mov dword [eax + 15], 0
-	mov dword [eax + 11], 0
-	mov byte [eax + 19], 0
-
-	mov word [eax], 0x8000 | FIS_TYPE_REG_H2D
+	multimov eax, [esp + 4], dword [eax + 3], 0, dword [eax + 7], 0, dword [eax + 15], 0, dword [eax + 11], 0, byte [eax + 19], 0, word [eax], 0x8000 | FIS_TYPE_REG_H2D
 	mov byte [eax + 2], ATA_CMD_IDENTIFY
 	ret
 
@@ -70,12 +63,10 @@ _FIS_REG_H2D_init:
 
 	align 16
 _AHCI_probePort:
-	multipush ebp, ebx, edi, esi
-	sub esp, 12
+	prolog ebp, ebx, edi, esi, 12
 	mov esi, [esp + 32]
 	xor edi, edi
-	mov ebp, 0x0F0F
-	mov ebx, [esi + 12]
+	multimov ebp, 0x0F0F, ebx, [esi + 12]
 	add esi, 0x128
 
 .loop:
@@ -129,8 +120,7 @@ _AHCI_probePort:
 	cmp edi, 32
 	jne .loop
 
-	add esp, 12
-	multipop ebp, ebx, edi, esi
+	epilog ebp, ebx, edi, esi, 12
 	ret
 
 
@@ -175,11 +165,9 @@ _AHCI_stopCmd:
 
 	align 16
 _AHCI_portRebase:
-	multipush ebp, edi, esi, ebx
-	sub esp, 24
+	prolog ebp, edi, esi, ebx, 24
 
-	mov ebp, [esp + 44]
-	mov esi, [esp + 48]
+	multimov ebp, [esp + 44], esi, [esp + 48]
 
 	push ebp
 	call _AHCI_stopCmd
@@ -190,12 +178,10 @@ _AHCI_portRebase:
 	add eax, AHCI_BASE
 	mov [ebp], eax
 
-	xor eax, eax
-	mov dword [ebp + 4], 0
-	mov edx, [ebp]
+	xor eax, eax	
+	multimov dword [ebp + 4], 0, edx, [ebp]
 	lea edi, [edx + 4]
-	mov dword [edx], 0
-	mov dword [edx + 1020], 0
+	multimov dword [edx], 0, dword [edx + 1020], 0
 	and edi, -4
 	sub edx, edi
 	lea ecx, [edx + 1024]
@@ -213,8 +199,7 @@ _AHCI_portRebase:
 
 	mov edx, [ebp + 8]
 	lea edi, [edx + 4]
-	mov dword [edx], 0
-	mov dword [edx + 252], 0
+	multimov dword [edx], 0, dword [edx + 252], 0
 	and edi, -4
 	sub edx, edi
 	lea ecx, [edx + 256]
@@ -228,12 +213,9 @@ _AHCI_portRebase:
 	mov ebx, [ebp]
 
 .loop:
-	mov ecx, 8
-	mov [ebx + 8], edx
-	mov edi, edx
+	multimov ecx, 8, [ebx + 8], edx, edi, edx
 	add edx, 0x100
-	mov [ebx + 2], cx
-	mov ecx, 0x40
+	multimov [ebx + 2], cx, ecx, 0x40
 	add ebx, 0x20
 	mov dword [ebx - 20], 0
 	rep stosd
@@ -242,6 +224,5 @@ _AHCI_portRebase:
 	jne .loop
 
 	mov [esp + 32], ebp
-	add esp, 12
-	multipop ebp, edi, esi, ebx
+	epilog ebp, edi, esi, ebx, 12
 	jmp _AHCI_startCmd

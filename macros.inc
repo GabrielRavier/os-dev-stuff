@@ -25,11 +25,37 @@
 
 	%rep %0	; Repeat number of arguments times
 		%rotate -1	; Rotate all arguments to the right
-		pop %1	; pop next argument
+		pop %1	; Pop next argument
 	%endrep
 
 %endmacro
 
+; Make a prologue (this is a fuse of multipush and a sub esp, x)
+%macro prolog 2-*
+
+	%rep (%0)-1	; Repeat number of arguments times minus 1
+		push %1	; Push next argument
+		%rotate 1	; Rotate all arguments to the left
+	%endrep
+
+	sub esp, %1	; Sub size of stack from esp
+
+%endmacro
+
+; Make an epilog (this is a fuse of multipop and a add esp, x)
+%macro epilog 2-*
+
+	%rotate -1
+	add esp, %1
+
+	%rep (%0)-1	; Repeat number of arguments times minus 1
+		%rotate -1	; Rotate all arguments to the right
+		pop %1	; Pop next argument
+	%endrep
+
+%endmacro
+
+; Zero a thing
 %macro zero 1
 	xor %1, %1
 %endmacro
@@ -40,6 +66,16 @@
 	%rep %0
 		zero %1
 		%rotate 1
+	%endrep
+
+%endmacro
+
+; Mov multiple times in a row (from left to right)
+%macro multimov 2-*
+
+	%rep (%0/2)	; Repeat number of arguments / 2
+		mov %1, %2	; Mov next arguments
+		%rotate 2	; Rotate all arguments to the left twice
 	%endrep
 
 %endmacro

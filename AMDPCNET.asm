@@ -80,8 +80,7 @@ _PCNET_init:
 	sub edx, 4
 	in eax, dx
 
-	mov ecx, eax
-	mov eax, 58
+	multimov ecx, eax, eax, 58
 	and ecx, 0xFFF0
 	or ecx, 2
 	add edx, 4
@@ -98,8 +97,7 @@ _PCNET_init:
 	add edx, 8
 	in eax, dx
 
-	mov ecx, eax
-	mov eax, 2
+	multimov ecx, eax, eax, 2
 	or ecx, 2
 	sub edx, 8
 	out dx, eax
@@ -123,8 +121,7 @@ _PCNET_enableASEL:
 	add edx, 8
 	in eax, dx
 
-	mov ecx, eax
-	mov eax, 2
+	multimov ecx, eax, eax, 2
 	or ecx, 2
 	sub edx, 8
 	out dx, eax
@@ -148,8 +145,7 @@ _PCNET_swStyleTo2:
 	sub edx, 4
 	in eax, dx
 
-	mov ecx, eax
-	mov eax, 58
+	multimov ecx, eax, eax, 58
 	and ecx, 0xFFF0
 	or ecx, 2
 	add edx, 4
@@ -328,14 +324,9 @@ _PCNET_initDE:	; initialize a DE
 
 	xor ecx, ecx
 
-	mov esi, [esp + 16]
-	mov eax, esi
+	multimov esi, [esp + 16], eax, esi
 	shl eax, 4
-	mov edx, [esp + 12]
-	mov [eax + edx], ecx
-	mov [eax + edx + 4], ecx
-	mov [eax + edx + 8], ecx
-	mov [eax + edx + 12], ecx
+	multimov edx, [esp + 12], [eax + edx], ecx, [eax + edx + 4], ecx, [eax + edx + 8], ecx, [eax + edx + 12], ecx
 
 	imul esi, 0x60C
 
@@ -346,9 +337,7 @@ _PCNET_initDE:	; initialize a DE
 	cmovne ecx, [_PCNET_txBuffers]
 	add esi, ecx
 
-	mov ecx, 0xF9F4
-	mov [eax + edx], esi
-	mov [eax + edx + 4], cx
+	multimov ecx, 0xF9F4, [eax + edx], esi, [eax + edx + 4], cx
 
 	test edi, edi
 	jne .return
@@ -365,17 +354,14 @@ _PCNET_initDE:	; initialize a DE
 
 	align 16
 _PCNET_sendPacket:
-	mov eax, [_PCNET_pTxBuffer]
-	mov ecx, [_PCNET_tDes]
+	multimov eax, [_PCNET_pTxBuffer], ecx, [_PCNET_tDes], edx, eax
 
-	mov edx, eax
 	shl edx, 4
 
 	cmp byte [ecx + edx + 7], 0
 	js .ret0
 
-	push esi
-	sub esp, 8
+	prolog esi, 8
 
 	imul eax, 0x60C
 	mov esi, [esp + 20]
@@ -385,8 +371,7 @@ _PCNET_sendPacket:
 	call _memcpy
 	add esp, 16
 
-	mov ecx, [_PCNET_pTxBuffer]
-	mov eax, [_PCNET_tDes]
+	multimov ecx, [_PCNET_pTxBuffer], eax, [_PCNET_tDes]
 
 	neg esi
 	or esi, 0xF000
@@ -394,14 +379,12 @@ _PCNET_sendPacket:
 	shl ecx, 4
 	or byte [eax + ecx + 7], 2
 
-	mov ecx, [_PCNET_pTxBuffer]
-	mov eax, [_PCNET_tDes]
+	multimov ecx, [_PCNET_pTxBuffer], eax, [_PCNET_tDes]
 
 	shl ecx, 4
 	or byte [eax + ecx + 7], 1
 
-	mov ecx, [_PCNET_pTxBuffer]
-	mov eax, [_PCNET_tDes]
+	multimov ecx, [_PCNET_pTxBuffer], eax, [_PCNET_tDes]
 	shl ecx, 4
 	mov [eax + ecx + 7], si
 
@@ -413,10 +396,8 @@ _PCNET_sendPacket:
 	cmp eax, [_PCNET_txBufferCount]
 	cmovne ecx, eax
 	
-	mov eax, 1
-	mov [_PCNET_pTxBuffer], ecx
-	add esp, 8
-	pop esi
+	multimov eax, 1, [_PCNET_pTxBuffer], ecx
+	epilog esi, 8
 	ret
 
 	align 16
