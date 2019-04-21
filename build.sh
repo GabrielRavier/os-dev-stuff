@@ -1,4 +1,5 @@
 MIPSEL_AS=mipsel-unknown-linux-gnu-as
+RISCV_AS=riscv-unknown-linux-gnu-as
 
 nasm -f elf32 CPUReset.asm &
 nasm -f elf32 8259PIC.asm &
@@ -18,4 +19,6 @@ nasm -f elf32 CPUID.asm &
 nasm -f elf32 CRC32.asm &
 nasm -f elf32 DetectColorMonochromeMonitor.asm &
 nasm -f elf32 DrawProtectedMode.asm &
-nasm -f elf32 FPU.asm
+nasm -f elf32 FPU.asm &
+nasm -f elf32 GamePort.asm &
+$RISCV_AS HiFiveBareBonesUtils.asm -o HiFiveBareBonesUtils.o
