@@ -1,11 +1,11 @@
 	.text
 
-	.globl _putchar
-	.globl _printk
-	.type _putchar, @function
-	.type _printk, @function
+	.globl putchar
+	.globl printk
+	.type putchar, @function
+	.type printk, @function
 
-_putchar:
+putchar:
 	sll $4, 24
 	sra $4, 24
 	li $3, 0xB0400000
@@ -27,7 +27,7 @@ $puLoop:
 
 
 
-_printk:
+printk:
 	addiu $sp, -32
 	sw $16, 24($sp)
 	sw $31, 28($sp)
@@ -40,7 +40,7 @@ _printk:
 	nop
 
 $prLoop:
-	jal _putchar
+	jal putchar
 	addiu $16, 1
 
 	lb $4, 0($16)
