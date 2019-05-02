@@ -47,4 +47,5 @@ assembleX86 DrawProtectedMode.asm &
 assembleX86 FPU.asm &
 assembleX86 GamePort.asm &
 assembleRISCV HiFiveBareBonesUtils.asm &
-assembleX86 InlineAssemblyExamples.asm
+assembleX86 InlineAssemblyExamples.asm &
+assembleX86 JulianDayNumber.asm
